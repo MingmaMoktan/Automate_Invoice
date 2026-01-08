@@ -1,0 +1,32 @@
+<h2>Upload Invoice</h2>
+<form method="post" enctype="multipart/form-data" id="upload-form">
+    {% csrf_token %}
+    <div id="drop-zone" style="border: 2px dashed #ccc; padding: 50px; text-align: center; cursor: pointer;">
+        <p>Drag & Drop your Invoice (PDF, Image, or CSV) here</p>
+        <p>or click to select a file</p>
+        {{ form.file }}
+    </div>
+    <button type="submit" style="margin-top: 20px;">Process Invoice</button>
+</form>
+
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.querySelector('.file-input');
+
+    dropZone.onclick = () => fileInput.click();
+
+    dropZone.ondragover = (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#000';
+    };
+
+    dropZone.ondragleave = () => {
+        dropZone.style.borderColor = '#ccc';
+    };
+
+    dropZone.ondrop = (e) => {
+        e.preventDefault();
+        fileInput.files = e.dataTransfer.files;
+        dropZone.innerHTML = `<p>File Selected: ${e.dataTransfer.files[0].name}</p>`;
+    };
+</script>
