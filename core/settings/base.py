@@ -35,6 +35,10 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 # 3. APPLICATION DEFINITION
 # ==============================================================================
 INSTALLED_APPS = [
+    # Internal Project Apps
+    'accounts.apps.AccountsConfig',
+    'invoices.apps.InvoicesConfig',
+    
     # Django Default Apps
     'django.contrib.admin',
     'django.contrib.auth',
@@ -45,9 +49,6 @@ INSTALLED_APPS = [
 
     # Third-Party Apps (Add libraries like 'crispy_forms' here later)
     
-    # Internal Project Apps
-    'accounts.apps.AccountsConfig',
-    'invoices.apps.InvoicesConfig',
 ]
 
 MIDDLEWARE = [
@@ -71,7 +72,8 @@ WSGI_APPLICATION = 'core.wsgi.application'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'], # Global templates folder
+        # Since BASE_DIR is already the project root, just use / 'templates'
+        'DIRS': [BASE_DIR / 'templates'], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -83,7 +85,6 @@ TEMPLATES = [
         },
     },
 ]
-
 
 # ==============================================================================
 # 5. DATABASE CONFIGURATION
@@ -137,3 +138,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # During development, emails are printed to the console
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'invoices:dashboard'
+LOGOUT_REDIRECT_URL = 'invoices:landing'

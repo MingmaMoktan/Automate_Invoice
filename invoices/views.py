@@ -1,71 +1,125 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.utils import timezone
 from .forms import InvoiceUploadForm
+from .models import Invoice
+from .utils import extract_invoice_data
 
 def landing_page(request):
-    return render(request, 'invoices/landing.html') # Or use the HttpResponse from before
+    return render(request, 'invoices/landing.html')
 
 @login_required
 def upload_invoice(request):
+    # 1. Define Plan Limits (Matched to your Pricing Page)
+    PLAN_LIMITS = {
+        'free': 3,
+        'starter': 200,
+        'advanced': 1000,
+        'professional': 3000,
+        'enterprise': 999999,
+    }
+
+    user_profile = request.user.profile
+    current_plan = user_profile.plan
+    limit = PLAN_LIMITS.get(current_plan, 3)
+
+    # 2. Calculate usage for the current month
+    now = timezone.now()
+    usage_count = Invoice.objects.filter(
+        user=request.user, 
+        uploaded_at__year=now.year, 
+        uploaded_at__month=now.month
+    ).count()
+
+    # 3. Handle POST Request
     if request.method == 'POST':
-        form = InvoiceUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            invoice = form.save(commit=False)
-            invoice.user = request.user  # Link to logged-in user
-            invoice.save()
-            return redirect('invoices:dashboard') # We will create this next
-    else:
-        form = InvoiceUploadForm()
-    return render(request, 'invoices/upload.html', {'form': form})
+        # CHECK LIMITS FIRST
+        if usage_count >= limit:
+            messages.error(request, f"Usage limit reached for your {current_plan.capitalize()} plan. Please upgrade to upload more.")
+            return redirect('pricing')
 
-@login_required
-def dashboard(request):
-    invoices = request.user.invoices.all()
-    return render(request, 'invoices/dashboard.html', {'invoices': invoices})
-
-from .utils import extract_invoice_data # Import our new brain
-
-@login_required
-def upload_invoice(request):
-    if request.method == 'POST':
         form = InvoiceUploadForm(request.POST, request.FILES)
         if form.is_valid():
             invoice = form.save(commit=False)
             invoice.user = request.user
-            invoice.status = 'processing' # Set status to processing
-            invoice.save() # Save the file to the disk first
+            invoice.status = 'processing'
+            invoice.save()
 
-            # Trigger the AI extraction
+            # Trigger AI Extraction
             try:
                 data = extract_invoice_data(invoice.file.path)
-                invoice.vendor_name = data['vendor_name']
-                invoice.total_amount = data['total_amount']
-                # We could also save the raw_text if you added that field to your model
+                invoice.vendor_name = data.get('vendor_name', 'Unknown')
+                invoice.total_amount = data.get('total_amount', 0.00)
                 invoice.status = 'completed'
             except Exception as e:
                 print(f"AI Error: {e}")
                 invoice.status = 'failed'
             
-            invoice.save() # Save the AI results
+            invoice.save()
             return redirect('invoices:dashboard')
     else:
         form = InvoiceUploadForm()
-    return render(request, 'invoices/upload.html', {'form': form})
 
-from .models import Invoice
+    return render(request, 'invoices/upload.html', {
+        'form': form,
+        'usage_count': usage_count,
+        'limit': limit,
+        'remaining': limit - usage_count,
+        'is_limited': usage_count >= limit
+    })
+
+@login_required
+def dashboard(request):
+    invoices = request.user.invoices.all().order_by('-uploaded_at')
+    return render(request, 'invoices/dashboard.html', {'invoices': invoices})
 
 @login_required
 def invoice_detail(request, pk):
-    # Fetch the specific invoice or show a 404 error if it doesn't exist
     invoice = get_object_or_404(Invoice, pk=pk, user=request.user)
     
     if request.method == 'POST':
-        # This allows the user to manually correct the AI data
         invoice.vendor_name = request.POST.get('vendor')
         invoice.total_amount = request.POST.get('amount')
-        # date logic could go here
+        # ADD THIS LINE:
+        invoice.invoice_date = request.POST.get('date') 
+        
         invoice.save()
+        messages.success(request, "Invoice updated successfully!")
         return redirect('invoices:dashboard')
 
     return render(request, 'invoices/detail.html', {'invoice': invoice})
+
+@login_required
+def delete_invoice(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk, user=request.user)
+    if request.method == 'POST':
+        invoice.delete()
+        messages.success(request, "Invoice deleted successfully.")
+    return redirect('invoices:dashboard')
+
+import csv
+from django.http import HttpResponse
+
+@login_required
+def delete_invoice(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk, user=request.user)
+    if request.method == 'POST':
+        invoice.delete()
+        messages.success(request, "Invoice removed successfully.")
+    return redirect('invoices:dashboard')
+
+@login_required
+def export_csv(request):
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="invoices_export_{timezone.now().date()}.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Vendor', 'Date', 'Amount', 'Status', 'Uploaded At'])
+
+    invoices = request.user.invoices.all()
+    for inv in invoices:
+        writer.writerow([inv.vendor_name, inv.invoice_date, inv.total_amount, inv.status, inv.uploaded_at])
+
+    return response

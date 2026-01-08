@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-12 flex flex-col md:flex-row gap-12">
+    <aside class="w-full md:w-64 space-y-2">
+        <h4 class="text-white font-bold mb-4 uppercase text-xs tracking-widest text-slate-500">Authentication</h4>
+        <a href="#auth" class="block text-blue-400 font-medium">API Keys</a>
+        <h4 class="text-white font-bold mb-4 mt-8 uppercase text-xs tracking-widest text-slate-500">Endpoints</h4>
+        <a href="#upload" class="block text-slate-400 hover:text-white">POST /api/upload</a>
+    </aside>
+
+    <main class="flex-1 space-y-12">
+        <section id="auth">
+            <h2 class="text-3xl font-bold text-white mb-4">Authentication</h2>
+            <p class="text-slate-400">All API requests must include your session token in the header.</p>
+            <div class="bg-black/50 p-4 rounded-lg mt-4 font-mono text-sm text-blue-300">
+                Authorization: Bearer YOUR_API_KEY
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}

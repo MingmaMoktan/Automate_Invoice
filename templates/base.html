@@ -6,11 +6,9 @@
     <title>{% block title %}InvoiceAuto | AI-Powered Data Extraction{% endblock %}</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
@@ -21,6 +19,9 @@
         ::-webkit-scrollbar-track { background: #1e293b; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        
+        /* Smooth transition for hover states */
+        .nav-link { transition: all 0.2s ease-in-out; }
     </style>
     
     {% block extra_head %}{% endblock %}
@@ -38,20 +39,20 @@
                 </div>
                 
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="{% url 'invoices:landing' %}" class="text-slate-400 hover:text-blue-400 font-medium transition">Home</a>
-                    <a href="{% url 'invoices:upload' %}" class="text-slate-400 hover:text-blue-400 font-medium transition">Invoice</a>
-                    <a href="#" class="text-slate-400 hover:text-blue-400 font-medium transition">Pricing</a>
+                    <a href="{% url 'invoices:landing' %}" class="nav-link {% if request.resolver_match.url_name == 'landing' %}text-blue-400{% else %}text-slate-400{% endif %} hover:text-blue-400 font-medium">Home</a>
+                    <a href="{% url 'features' %}" class="nav-link {% if request.resolver_match.url_name == 'features' %}text-blue-400{% else %}text-slate-400{% endif %} hover:text-blue-400 font-medium">Features</a>
+                    <a href="{% url 'pricing' %}" class="nav-link {% if request.resolver_match.url_name == 'pricing' %}text-blue-400{% else %}text-slate-400{% endif %} hover:text-blue-400 font-medium">Pricing</a>
                     
                     {% if user.is_authenticated %}
-                        <a href="{% url 'invoices:dashboard' %}" class="text-slate-400 hover:text-blue-400 font-medium transition">Dashboard</a>
+                        <a href="{% url 'invoices:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}text-blue-400{% else %}text-slate-400{% endif %} hover:text-blue-400 font-medium">Dashboard</a>
                         <div class="h-6 w-px bg-slate-800 mx-2"></div>
-                        <form method="post" action="/admin/logout/" class="inline">
+                        <form method="post" action="{% url 'logout' %}" class="inline">
                             {% csrf_token %}
                             <button type="submit" class="text-slate-500 hover:text-red-400 font-medium text-sm transition">Logout</button>
                         </form>
                     {% else %}
-                        <a href="/admin/login/" class="text-slate-400 hover:text-blue-400 font-medium transition">Login</a>
-                        <a href="#" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg font-semibold transition shadow-lg shadow-blue-900/20">
+                        <a href="{% url 'login' %}" class="text-slate-400 hover:text-blue-400 font-medium transition">Login</a>
+                        <a href="{% url 'signup' %}" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg font-semibold transition shadow-lg shadow-blue-900/20">
                             Sign Up
                         </a>
                     {% endif %}
@@ -76,20 +77,21 @@
              class="md:hidden bg-[#1e293b] border-b border-slate-800 shadow-2xl">
             <div class="px-4 pt-2 pb-6 space-y-2">
                 <a href="{% url 'invoices:landing' %}" class="block px-3 py-3 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-blue-400 rounded-xl transition">Home</a>
-                <a href="{% url 'invoices:upload' %}" class="block px-3 py-3 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-blue-400 rounded-xl transition">Invoice</a>
-                <a href="{% url 'invoices:dashboard' %}" class="block px-3 py-3 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-blue-400 rounded-xl transition">Dashboard</a>
+                <a href="{% url 'features' %}" class="block px-3 py-3 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-blue-400 rounded-xl transition">Features</a>
+                <a href="{% url 'pricing' %}" class="block px-3 py-3 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-blue-400 rounded-xl transition">Pricing</a>
                 
-                <div class="border-t border-slate-800 pt-4 mt-4">
-                    {% if not user.is_authenticated %}
-                        <a href="/admin/login/" class="block w-full text-center py-3 text-base font-bold text-blue-400 border border-blue-400/30 rounded-xl mb-2 hover:bg-blue-400/10">Login</a>
-                        <a href="#" class="block w-full text-center py-3 text-base font-bold text-white bg-blue-600 rounded-xl shadow-lg">Sign Up Free</a>
-                    {% else %}
-                        <form method="post" action="/admin/logout/">
-                            {% csrf_token %}
-                            <button type="submit" class="w-full text-left px-3 py-3 text-base font-medium text-red-400 hover:bg-red-400/10 rounded-xl">Sign Out</button>
-                        </form>
-                    {% endif %}
-                </div>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'invoices:dashboard' %}" class="block px-3 py-3 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-blue-400 rounded-xl transition">Dashboard</a>
+                    <form method="post" action="{% url 'logout' %}" class="border-t border-slate-800 mt-2 pt-2">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full text-left px-3 py-3 text-base font-medium text-red-400 hover:bg-red-400/10 rounded-xl">Sign Out</button>
+                    </form>
+                {% else %}
+                    <div class="border-t border-slate-800 pt-4 mt-4">
+                        <a href="{% url 'login' %}" class="block w-full text-center py-3 text-base font-bold text-blue-400 border border-blue-400/30 rounded-xl mb-2 hover:bg-blue-400/10">Login</a>
+                        <a href="{% url 'signup' %}" class="block w-full text-center py-3 text-base font-bold text-white bg-blue-600 rounded-xl shadow-lg">Sign Up Free</a>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </nav>
@@ -110,17 +112,17 @@
                 <div>
                     <h4 class="font-bold text-slate-300 mb-4">Product</h4>
                     <ul class="text-sm text-slate-500 space-y-2">
-                        <li><a href="#" class="hover:text-blue-400 transition">Features</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition">Pricing</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition">Security</a></li>
+                        <li><a href="{% url 'features' %}" class="hover:text-blue-400 transition">Features</a></li>
+                        <li><a href="{% url 'pricing' %}" class="hover:text-blue-400 transition">Pricing</a></li>
+                        <li><a href="{% url 'privacy' %}" class="hover:text-blue-400 transition">Privacy Policy</a></li>
                     </ul>
                 </div>
                 <div>
                     <h4 class="font-bold text-slate-300 mb-4">Support</h4>
                     <ul class="text-sm text-slate-500 space-y-2">
-                        <li><a href="#" class="hover:text-blue-400 transition">Help Center</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition">API Docs</a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition">Contact</a></li>
+                        <li><a href="{% url 'help_center' %}" class="hover:text-blue-400 transition">Help Center</a></li>
+                        <li><a href="{% url 'docs' %}" class="hover:text-blue-400 transition">API Docs</a></li>
+                        <li><a href="{% url 'contact' %}" class="hover:text-blue-400 transition">Contact</a></li>
                     </ul>
                 </div>
             </div>

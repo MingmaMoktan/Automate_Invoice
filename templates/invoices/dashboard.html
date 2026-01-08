@@ -3,15 +3,25 @@
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     
+    <div class="mb-8 p-4 bg-slate-800/80 border border-slate-700 rounded-2xl flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <div class="px-3 py-1 bg-blue-500/20 border border-blue-500/50 rounded-lg">
+                <span class="text-blue-400 text-xs font-black uppercase tracking-widest">{{ user.profile.plan }} Plan</span>
+            </div>
+            <p class="text-slate-400 text-sm hidden md:block italic">Files are automatically cleared after 30 days for your privacy.</p>
+        </div>
+        <a href="{% url 'pricing' %}" class="text-xs font-bold text-slate-400 hover:text-white transition uppercase tracking-tighter">Upgrade Plan →</a>
+    </div>
+
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
         <div>
             <h1 class="text-3xl font-bold text-white tracking-tight">Invoice Dashboard</h1>
             <p class="text-slate-400 mt-1 text-sm">Monitor and manage your automated extractions.</p>
         </div>
         <div class="flex items-center space-x-3">
-            <button class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2.5 rounded-xl font-bold transition flex items-center border border-slate-700">
+            <a href="{% url 'invoices:export_csv' %}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2.5 rounded-xl font-bold transition flex items-center border border-slate-700">
                 <i class="fas fa-download mr-2 text-xs"></i> Export CSV
-            </button>
+            </a>
             <a href="{% url 'invoices:upload' %}" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-bold transition flex items-center shadow-lg shadow-blue-900/20">
                 <i class="fas fa-plus mr-2 text-xs"></i> New Upload
             </a>
@@ -35,10 +45,10 @@
                 <div class="w-10 h-10 bg-green-500/10 text-green-400 rounded-lg flex items-center justify-center">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Accuracy</span>
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Retention</span>
             </div>
-            <h3 class="text-2xl font-bold text-white">99.8%</h3>
-            <p class="text-slate-500 text-xs mt-1">AI confidence average</p>
+            <h3 class="text-2xl font-bold text-white">30 Days</h3>
+            <p class="text-slate-500 text-xs mt-1">Auto-cleanup frequency</p>
         </div>
 
         <div class="bg-slate-800/50 border border-slate-700/50 p-6 rounded-2xl">
@@ -48,7 +58,9 @@
                 </div>
                 <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Time Saved</span>
             </div>
-            <h3 class="text-2xl font-bold text-white">{{ invoices.count|add:"10" }}m</h3>
+            <h3 class="text-2xl font-bold text-white">
+                {{ invoices.count|add:invoices.count|add:invoices.count }}m
+            </h3>
             <p class="text-slate-500 text-xs mt-1">Estimated manual entry saved</p>
         </div>
     </div>
@@ -61,7 +73,7 @@
                         <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Vendor</th>
                         <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Invoice Date</th>
                         <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Amount</th>
-                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Auto-Delete</th>
                         <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Actions</th>
                     </tr>
                 </thead>
@@ -77,42 +89,34 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
-                            {{ invoice.date|default:invoice.uploaded_at|date:"M d, Y" }}
+                            {{ invoice.invoice_date|default:invoice.uploaded_at|date:"M d, Y" }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="font-bold text-white">${{ invoice.total_amount|default:"0.00" }}</span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                {% if invoice.status == 'completed' %} bg-green-500/10 text-green-400
-                                {% elif invoice.status == 'failed' %} bg-red-500/10 text-red-400
-                                {% else %} bg-blue-500/10 text-blue-400 animate-pulse {% endif %}">
-                                <span class="w-1.5 h-1.5 rounded-full mr-1.5 
-                                    {% if invoice.status == 'completed' %} bg-green-400
-                                    {% elif invoice.status == 'failed' %} bg-red-400
-                                    {% else %} bg-blue-400 {% endif %}"></span>
-                                {{ invoice.get_status_display }}
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <span class="text-[10px] text-slate-500 font-mono">
+                                <i class="fas fa-history mr-1"></i> 30d Remaining
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                            <a href="{% url 'invoices:detail' invoice.pk %}" class="inline-flex items-center bg-slate-700 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition border border-slate-600">
-                                Review <i class="fas fa-chevron-right ml-2 text-[10px]"></i>
-                            </a>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <div class="flex items-center justify-end space-x-2">
+                                <a href="{% url 'invoices:detail' invoice.pk %}" class="inline-flex items-center bg-slate-700 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition border border-slate-600">
+                                    Review
+                                </a>
+                                <form action="{% url 'invoices:delete' invoice.pk %}" method="post" onsubmit="return confirm('Permanently delete this invoice from the server?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="p-1.5 text-slate-500 hover:text-red-400 transition">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
                         <td colspan="5" class="px-6 py-20 text-center">
-                            <div class="flex flex-col items-center">
-                                <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4 text-slate-600">
-                                    <i class="fas fa-folder-open text-3xl"></i>
-                                </div>
-                                <h4 class="text-slate-300 font-bold">No invoices found</h4>
-                                <p class="text-slate-500 text-sm mb-6">You haven't uploaded any documents yet.</p>
-                                <a href="{% url 'invoices:upload' %}" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition">
-                                    Upload First Invoice
-                                </a>
-                            </div>
+                            <p class="text-slate-500">No invoices found. Ready to process your first document?</p>
                         </td>
                     </tr>
                     {% endfor %}
