@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}InvoiceAuto | AI-Powered Data Extraction{% endblock %}</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        [x-cloak] { display: none !important; }
+        /* Custom scrollbar for dark mode */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="flex flex-col min-h-screen bg-[#0f172a] text-slate-200" x-data="{ mobileMenuOpen: false }">
+
+    <nav class="bg-[#0f172a]/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a class="flex items-center space-x-2 text-2xl font-bold text-blue-500 tracking-tight" href="{% url 'invoices:landing' %}">
+                        <i class="fas fa-bolt text-blue-400"></i>
+                        <span>InvoiceAuto</span>
+                    </a>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="{% url 'invoices:landing' %}" class="text-slate-400 hover:text-blue-400 font-medium transition">Home</a>
+                    <a href="{% url 'invoices:upload' %}" class="text-slate-400 hover:text-blue-400 font-medium transition">Invoice</a>
+                    <a href="#" class="text-slate-400 hover:text-blue-400 font-medium transition">Pricing</a>
+                    
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'invoices:dashboard' %}" class="text-slate-400 hover:text-blue-400 font-medium transition">Dashboard</a>
+                        <div class="h-6 w-px bg-slate-800 mx-2"></div>
+                        <form method="post" action="/admin/logout/" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-slate-500 hover:text-red-400 font-medium text-sm transition">Logout</button>
+                        </form>
+                    {% else %}
+                        <a href="/admin/login/" class="text-slate-400 hover:text-blue-400 font-medium transition">Login</a>
+                        <a href="#" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg font-semibold transition shadow-lg shadow-blue-900/20">
+                            Sign Up
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <div class="md:hidden flex items-center">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-slate-400 p-2 focus:outline-none hover:bg-slate-800 rounded-lg transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path x-show="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                            <path x-show="mobileMenuOpen" x-cloak stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="mobileMenuOpen" 
+             x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             class="md:hidden bg-[#1e293b] border-b border-slate-800 shadow-2xl">
+            <div class="px-4 pt-2 pb-6 space-y-2">
+                <a href="{% url 'invoices:landing' %}" class="block px-3 py-3 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-blue-400 rounded-xl transition">Home</a>
+                <a href="{% url 'invoices:upload' %}" class="block px-3 py-3 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-blue-400 rounded-xl transition">Invoice</a>
+                <a href="{% url 'invoices:dashboard' %}" class="block px-3 py-3 text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-blue-400 rounded-xl transition">Dashboard</a>
+                
+                <div class="border-t border-slate-800 pt-4 mt-4">
+                    {% if not user.is_authenticated %}
+                        <a href="/admin/login/" class="block w-full text-center py-3 text-base font-bold text-blue-400 border border-blue-400/30 rounded-xl mb-2 hover:bg-blue-400/10">Login</a>
+                        <a href="#" class="block w-full text-center py-3 text-base font-bold text-white bg-blue-600 rounded-xl shadow-lg">Sign Up Free</a>
+                    {% else %}
+                        <form method="post" action="/admin/logout/">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full text-left px-3 py-3 text-base font-medium text-red-400 hover:bg-red-400/10 rounded-xl">Sign Out</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-[#0f172a] border-t border-slate-800 pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+                <div class="col-span-2">
+                    <div class="text-xl font-bold text-blue-500 mb-4">InvoiceAuto</div>
+                    <p class="text-slate-500 max-w-xs text-sm leading-relaxed">
+                        Precision AI for automated accounting. Fast, secure, and built for modern teams.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-300 mb-4">Product</h4>
+                    <ul class="text-sm text-slate-500 space-y-2">
+                        <li><a href="#" class="hover:text-blue-400 transition">Features</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition">Pricing</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition">Security</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-300 mb-4">Support</h4>
+                    <ul class="text-sm text-slate-500 space-y-2">
+                        <li><a href="#" class="hover:text-blue-400 transition">Help Center</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition">API Docs</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="pt-8 border-t border-slate-800 text-center text-slate-600 text-xs">
+                &copy; 2026 InvoiceAuto. All rights reserved. Optimized for high-performance extraction.
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
