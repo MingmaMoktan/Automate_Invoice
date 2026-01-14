@@ -123,3 +123,40 @@ def export_csv(request):
         writer.writerow([inv.vendor_name, inv.invoice_date, inv.total_amount, inv.status, inv.uploaded_at])
 
     return response
+
+# Demo logic
+import uuid
+from django.shortcuts import render
+from .utils import perform_ai_extraction # Assuming your AI logic is here
+
+def demo_upload(request):
+    # Initialize session counter if it doesn't exist
+    if 'demo_count' not in request.session:
+        request.session['demo_count'] = 0
+    
+    usage = request.session['demo_count']
+    limit = 3
+    is_limited = usage >= limit
+
+    if request.method == 'POST' and not is_limited:
+        uploaded_file = request.FILES.get('file')
+        
+        # 1. Perform AI extraction WITHOUT saving to DB
+        # We pass the file stream directly to your AI function
+        extracted_data = perform_ai_extraction(uploaded_file)
+        
+        # 2. Increment the session counter
+        request.session['demo_count'] += 1
+        request.session.modified = True 
+        
+        # 3. Show the result page with the data (but it's not in the DB!)
+        return render(request, 'invoices/demo_result.html', {
+            'data': extracted_data,
+            'remaining': limit - request.session['demo_count']
+        })
+
+    return render(request, 'invoices/demo_upload.html', {
+        'usage_count': usage,
+        'limit': limit,
+        'is_limited': is_limited
+    })

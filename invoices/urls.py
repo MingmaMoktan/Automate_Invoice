@@ -13,6 +13,7 @@ urlpatterns = [
     path('invoice/<int:pk>/', views.invoice_detail, name='detail'),
     path('delete/<int:pk>/', views.delete_invoice, name='delete'),
     path('export-csv/', views.export_csv, name='export_csv'),
+    path('demo/', views.demo_upload, name='demo_upload')
 ]
 
 # Only serve media files this way during development

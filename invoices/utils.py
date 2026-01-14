@@ -53,3 +53,18 @@ def extract_invoice_data(image_path):
         "date": extracted_date,
         "raw_text": text
     }
+    
+    # invoices/utils.py
+
+def perform_ai_extraction(file):
+    """
+    Temporary placeholder for AI extraction logic.
+    In the next step, we will connect this to Gemini or Tesseract.
+    """
+    return {
+        'vendor_name': 'Demo Vendor Inc',
+        'invoice_date': '2026-01-13',
+        'invoice_number': 'INV-12345',
+        'total_amount': '150.00',
+        'currency': 'USD',
+    }
