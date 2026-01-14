@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-12">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="text-3xl font-bold text-white">Extraction Result <span class="text-blue-500 font-light">(Demo)</span></h1>
+        <div class="bg-blue-500/10 border border-blue-500/20 px-4 py-2 rounded-full">
+            <span class="text-blue-400 text-sm font-bold">{{ remaining }} demo uploads left</span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-slate-800/50 border border-slate-700 rounded-3xl p-8 shadow-xl">
+            <h3 class="text-slate-400 uppercase text-xs font-black tracking-widest mb-6">Detected Information</h3>
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="text-slate-500 text-xs font-bold uppercase">Vendor Name</label>
+                    <p class="text-white text-xl font-semibold">{{ data.vendor_name|default:"Not found" }}</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-slate-500 text-xs font-bold uppercase">Date</label>
+                        <p class="text-white font-medium">{{ data.invoice_date }}</p>
+                    </div>
+                    <div>
+                        <label class="text-slate-500 text-xs font-bold uppercase">Invoice #</label>
+                        <p class="text-white font-medium">{{ data.invoice_number }}</p>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-slate-500 text-xs font-bold uppercase">Total Amount</label>
+                    <p class="text-green-400 text-3xl font-black">{{ data.currency }} {{ data.total_amount }}</p>
+                </div>
+            </div>
+
+            <div class="mt-10 pt-8 border-t border-slate-700/50">
+                <p class="text-slate-300 text-sm mb-4 italic text-center">Want to save this and export to CSV/Excel?</p>
+                <a href="{% url 'accounts:signup' %}" class="block w-full bg-blue-600 hover:bg-blue-500 text-white text-center font-bold py-4 rounded-xl transition shadow-lg shadow-blue-900/40">
+                    Create Free Account to Save
+                </a>
+                <a href="{% url 'invoices:demo_upload' %}" class="block text-center text-slate-500 hover:text-slate-300 text-xs mt-4 transition">
+                    Try another demo upload
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-slate-900/50 border border-slate-700 border-dashed rounded-3xl p-8 flex flex-col items-center justify-center text-center">
+            <i class="fas fa-file-invoice-dollar text-slate-700 text-6xl mb-4"></i>
+            <p class="text-slate-500 text-sm">Full PDF preview and history tracking are available in the <span class="text-slate-300 font-bold">Pro Dashboard</span>.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
